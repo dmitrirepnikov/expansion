@@ -19,28 +19,20 @@ st.set_page_config(page_title="H3 Delivery Map", layout="wide")
 @st.cache_resource
 def get_bq_client():
     try:
-        st.sidebar.info("Initializing BigQuery client...")
-        # Check if running locally or in Streamlit Cloud
-        if "gcp_service_account" in st.secrets:
-            st.sidebar.info("Using Streamlit Cloud authentication")
-            # Use stored secrets in Streamlit Cloud
-            credentials_dict = st.secrets["gcp_service_account"]
-            credentials = google.oauth2.credentials.Credentials(
+        # Check if running on Streamlit Cloud (with secrets)
+        if 'gcp_service_account' in st.secrets:
+            from google.oauth2.credentials import Credentials
+            creds = Credentials(
                 None,
-                refresh_token=credentials_dict['refresh_token'],
-                token_uri="https://oauth2.googleapis.com/token",
-                client_id=credentials_dict['client_id'],
-                client_secret=credentials_dict['client_secret']
+                refresh_token=st.secrets["gcp_service_account"]["refresh_token"],
+                client_id=st.secrets["gcp_service_account"]["client_id"],
+                client_secret=st.secrets["gcp_service_account"]["client_secret"]
             )
+            client = bigquery.Client(credentials=creds)
         else:
-            st.sidebar.info("Using local authentication")
-            # When running locally, use default credentials
-            credentials = None
-        
-        client = bigquery.Client(project='postmates-x', credentials=credentials)
-        # Test the connection
-        client.list_datasets(max_results=1)
-        st.sidebar.success("✅ BigQuery connection successful!")
+            # Local development fallback
+            credentials, project = google.auth.default()
+            client = bigquery.Client(project='postmates-x', credentials=credentials)
         return client
     except Exception as e:
         error_msg = f"❌ Error initializing BigQuery client: {str(e)}"
