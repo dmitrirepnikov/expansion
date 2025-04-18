@@ -28,7 +28,8 @@ def get_bq_client():
                 client_id=st.secrets["gcp_service_account"]["client_id"],
                 client_secret=st.secrets["gcp_service_account"]["client_secret"]
             )
-            client = bigquery.Client(credentials=creds)
+            # Explicitly specify the project ID here
+            client = bigquery.Client(project='postmates-x', credentials=creds)
         else:
             # Local development fallback
             credentials, project = google.auth.default()
