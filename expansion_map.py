@@ -23,8 +23,9 @@ def get_bq_client():
         if 'gcp_service_account' in st.secrets:
             from google.oauth2.credentials import Credentials
             creds = Credentials(
-                None,
+                None,  # Access token (will be obtained using the refresh token)
                 refresh_token=st.secrets["gcp_service_account"]["refresh_token"],
+                token_uri="https://oauth2.googleapis.com/token",  # Add this line
                 client_id=st.secrets["gcp_service_account"]["client_id"],
                 client_secret=st.secrets["gcp_service_account"]["client_secret"]
             )
